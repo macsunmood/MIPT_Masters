@@ -1,0 +1,27 @@
+[client]
+showErrorDetails = true
+
+[browser]
+# Internet address of the server that the browser should connect to. Can be IP address or DNS name.
+# Default: 'localhost'
+# serverAddress = "172.16.110.228"
+# serverPort = 8501
+
+[server]
+headless = false
+# runOnSave = true
+# address = "172.16.110.228"
+# port = 8501
+enableCORS = false
+enableXsrfProtection = false
+maxUploadSize = 50000
+
+[theme]
+primaryColor = "#0083B8"
+# primaryColor = "#00CC99"
+# backgroundColor = "black"
+# secondaryBackgroundColor="#F0F2F6"
+# textColor="#31333F"
+# font="sans serif"
+
+# textColor = "#DCDCDC"
