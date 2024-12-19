@@ -1,13 +1,12 @@
 streamlit
-pydeck
-pandas
-python-dotenv
 
 numpy==1.24.0
 pandas
+python-dotenv
+
 matplotlib==3.7.2
-stqdm
-gdown
+altair
+pydeck
 
 scikit-image
 imgviz

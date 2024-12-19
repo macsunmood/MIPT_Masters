@@ -1,12 +1,11 @@
 import os
 import ast
-import random
+# import random
 import requests
 from dotenv import load_dotenv
 
 import streamlit as st
 import pandas as pd
-import pydeck as pdk
 
 
 # Load environment variables from .env file
@@ -152,16 +151,4 @@ def bird_dynamics(df, bird='', longitude_left=-180, longitude_right=180, latitud
             else:
                 df_result.loc[i, 'Риск вымирания'] = 'Низкий'
 
-    # Применение стилей
-    def color_rows(row):
-        """Возвращает стили для строки в зависимости от уровня риска."""
-        color = {
-            'Нет данных': 'background-color: lightgray;',
-            'Низкий': 'background-color: lightgreen;',
-            'Средний': 'background-color: yellow;',
-            'Высокий': 'background-color: lightcoral;'
-        }.get(row['Риск вымирания'], '')
-        return [color] * len(row)
-
-    # Перед стилизацией возвращаем весь датафрейм
-    return df_result.style.apply(color_rows, axis=1)
+    return df_result
