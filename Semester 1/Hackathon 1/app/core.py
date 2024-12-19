@@ -1,11 +1,23 @@
+import streamlit as st
+
 import os
 import ast
+
+from pathlib import Path
+import numpy as np
+import pandas as pd
+import gdown
+
 # import random
 import requests
 from dotenv import load_dotenv
 
-import streamlit as st
-import pandas as pd
+import tensorflow as tf
+from tensorflow.keras.models import load_model
+
+import speech_recognition as sr
+
+# from utils import *
 
 
 # Load environment variables from .env file
@@ -31,6 +43,7 @@ def load_data(file_path):
 
 
 # Retrieve bird info via eBird API
+# @st.cache_data
 def get_bird_info(species_code):
     url = f"{EBIRD_API_URL}?species={species_code}&fmt=json&locale=ru"
     headers = {"X-eBirdApiToken": EBIRD_API_KEY}
@@ -152,3 +165,86 @@ def bird_dynamics(df, bird='', longitude_left=-180, longitude_right=180, latitud
                 df_result.loc[i, 'Риск вымирания'] = 'Низкий'
 
     return df_result
+
+
+###
+### ML PART
+###
+
+
+BATCH_SIZE = 64
+CLASSES_DICT = {0: 'england', 1: 'us'}
+
+
+###==============================================
+
+
+def get_models_list(dir_name, exts=('h5', 'joblib')):
+    return [dir_name + f for f in os.listdir(dir_name) 
+            if os.path.isfile(os.path.join(dir_name, f)) 
+            and f.split('.')[-1] in exts]
+
+
+class Info(tf.keras.layers.Layer):
+    def __init__(self, classes_dict):
+        self.classes_dict = classes_dict
+        super().__init__()
+
+    def get_config(self):
+        return {'classes_dict': self.classes_dict}
+
+
+def get_classes_dict(model):
+    d = next(l.classes_dict for l in model.layers 
+             if hasattr(l, 'classes_dict'))
+    return {int(k): v for k, v in d.items()}
+
+
+@st.cache_resource
+def load_models(models_urls, models_dir='models'):
+    '''Load pretrained models'''
+    # Open a new TensorFlow session
+    config = tf.compat.v1.ConfigProto(allow_soft_placement=True)
+    session = tf.compat.v1.Session(config=config)
+    with session.as_default():
+        models = {}
+        save_dest = Path(models_dir)
+        save_dest.mkdir(exist_ok=True)
+
+        # for m in get_models_list(models_dir):
+        for i, m_url in enumerate(models_urls):
+            model_file = os.path.join(models_dir, f'model_{i}.h5')
+            if not Path(model_file).exists():
+                with st.spinner("Downloading model... this may take a while! \n Don't stop!"):
+                    # Download the file from Google Drive
+                    gdown.download(m_url, model_file, quiet=False)
+
+            if os.path.splitext(model_file)[-1] == '.h5':
+                try:
+                    model = load_model(model_file, custom_objects={'Info': Info})
+                except:
+                    model = load_model(model_file)
+
+            if not hasattr(model, 'classes_dict'):
+                try:
+                    model.classes_dict = get_classes_dict(model)
+                except:
+                    model.classes_dict = CLASSES_DICT
+
+            models.update({model.name: model})
+    return session, models
+
+
+def make_prediction(model, features, batch_size):
+    # predict = model.predict(features, batch_size)
+    pred_proba = model.predict(features)
+    # pred_proba = model.predict_proba(features, 1)
+    pred = np.argmax(pred_proba, axis=-1)
+    return pred_proba, pred
+
+
+def recognize_class(model, features):
+    # features = np.expand_dims(features, 0)
+    pred_proba, pred = make_prediction(model, features, BATCH_SIZE)
+    # pred = make_prediction(model, features, 1)[0]
+    return pred_proba[0], model.classes_dict[pred[0]]

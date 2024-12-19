@@ -1,12 +1,14 @@
+import streamlit as st
+
+
 import os
 # import ast
 # import random
 from PIL import Image
 from io import BytesIO
 from urllib.request import urlopen
-from dotenv import load_dotenv
+# from dotenv import load_dotenv
 
-import streamlit as st
 import pandas as pd
 import pydeck as pdk
 import altair as alt
@@ -38,7 +40,7 @@ st.session_state['file_selector_is_expanded'] = False
 #     st.session_state['file_selector_is_expanded'] = False
 
 file_selector_container = st.sidebar.expander(
-    'Выбрать файл', 
+    'Выбор файла', 
     expanded=False
     # expanded=st.session_state['file_selector_is_expanded']
 )
@@ -50,7 +52,7 @@ csvfile = "./top_30.csv"
 # Choose file upload mode
 with file_selector_container:
     video_extensions = ['.csv']
-    upload_mode = st.toggle('Local dir', help='Choosing between uploading and local directory files list', value=True)
+    upload_mode = st.toggle('Local dir', help='Выбор между загрузкой и списком файлов локального каталога', value=True)
 
     if upload_mode:
         def file_selector(folder_path='.'):
@@ -59,17 +61,17 @@ with file_selector_container:
             video_files = [f for f in os.listdir(folder_path) if is_video_file(f)]
 
             if not video_files:
-                st.warning('No video files found in the selected directory.')
+                st.warning('В выбранной директории не найдено CSV файлов.')
                 return None
 
-            selected_filename = st.selectbox('Select a CSV file', video_files, help=f'from {folder_path}')
+            selected_filename = st.selectbox('Выберите CSV файл', video_files, help=f'из {folder_path}')
             return os.path.join(folder_path, selected_filename)
 
         videofile = file_selector()
         # videofile_name = os.path.split(videofile)[-1]
         # file_path_input = st.text_input('CSV file path:', videofile)
     else:
-        uploaded_video = st.file_uploader('Upload a CSV', type=video_extensions)
+        uploaded_video = st.file_uploader('Загрузить CSV файл', type=video_extensions)
         # videofile_name = uploaded_video.name if uploaded_video else ''
         if uploaded_video:
             csvfile = uploaded_video.name
@@ -238,6 +240,12 @@ else:
 
                 **`{first_bird_info.get('sciName', '<Нет данных о научном названии>')}`**
                 '''
+                # "taxonOrder":28313
+                # "order":"Passeriformes"
+                # "familyCode":"turdid1"
+                # "familyComName":"Thrushes and Allies"
+                # "familySciName":"Turdidae"
+
 
                 # title_placeholder.title(bird_names)
                 # col_info.subheader(species)
@@ -366,7 +374,3 @@ else:
                 st.warning("Недостаточно данных для анализа выбранного вида птицы.")
     else:
         st.warning("Нет данных для отображения на карте.")
-
-
-# if __name__ == "__main__":
-#     main()

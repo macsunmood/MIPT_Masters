@@ -1,39 +1,33 @@
-import os
+import streamlit as st
+
+# import os
 # import ast
 # import random
-from PIL import Image
-from io import BytesIO
-from urllib.request import urlopen
-from dotenv import load_dotenv
 
-import streamlit as st
-import pandas as pd
-import pydeck as pdk
-import altair as alt
-import matplotlib.pyplot as plt
-
-from core import *
-
-
-import streamlit as st
 import pandas as pd
 import numpy as np
-from io import StringIO
+# import pydeck as pdk
+# import altair as alt
+# import matplotlib.pyplot as plt
+
+# from PIL import Image
+# from io import BytesIO
+# from urllib.request import urlopen
+from dotenv import load_dotenv
+
 from sklearn.ensemble import RandomForestClassifier
 from sklearn.model_selection import train_test_split
 from sklearn.metrics import accuracy_score
 import time
 import requests
 
-
-switch_page = st.button("Switch page")
-if switch_page:
-    st.switch_page('ui_visualize.py')
+from core import *
 
 
 # Sidebar: File upload
-st.sidebar.header("Upload CSV File")
-uploaded_file = st.sidebar.file_uploader("Choose a CSV file", type="csv")
+st.sidebar.header("Загрузка CSV файла")
+uploaded_file = st.sidebar.file_uploader('Выберите CSV файл', type="csv")
+
 
 # Placeholder for data
 data = None
@@ -82,27 +76,22 @@ def recognize_classes(df, model):
 def display_ebird_info(row):
     st.subheader("eBird Information")
     species = row['primary_label']
-    ebird_url = f"https://api.ebird.org/v2/data/obs/{{species}}/recent"  # Replace with actual API URL
 
-    try:
-        response = requests.get(ebird_url)
-        if response.status_code == 200:
-            data = response.json()
-            # Display sample image
-            st.image(data["image_url"], caption=species)
-            # Play audio if available
-            if "audio_url" in data:
-                st.audio(data["audio_url"])
-        else:
-            st.error(f"Failed to fetch data from eBird API. Status code: {response.status_code}")
-    except Exception as e:
-        st.error(f"Error fetching data from eBird API: {e}")
+    bird_info = get_bird_info(species)
+
+    st.write(bird_info)
+    # # Display sample image
+    # st.image(bird_info["image_url"], caption=species)
+    # # Play audio if available
+    # if "audio_url" in bird_info:
+    #     st.audio(bird_info["audio_url"])
 
 
 if uploaded_file:
     # Validate file structure
     data = validate_file(uploaded_file)
 
+    
     if data is not None:
         # Check for 'primary_label' column
         if 'primary_label' not in data.columns:
@@ -128,28 +117,39 @@ if uploaded_file:
                 # Recognize missing classes
                 data = recognize_classes(data, model)
 
+
         # Display data
-        st.subheader("Data Preview")
-        if len(data) > 1000:
-            st.dataframe(data.head(1000))
-        else:
-            st.dataframe(data)
+        col1, col2, col3 = st.columns([1, 2, 2])
+        # st.subheader("Data Preview")
+        st.dataframe(data, use_container_width=True)
+
 
         # Filtering
-        filter_column = st.selectbox("Filter by column:", options=data.columns)
-        filter_value = st.text_input("Enter value to filter by:")
-
+        filter_column = col1.selectbox("Фильтр по признаку:", options=data.columns)
+        filter_value = col2.text_input("Значение для фильтра:")
         if filter_value:
             filtered_data = data[data[filter_column].astype(str).str.contains(filter_value)]
             st.dataframe(filtered_data)
 
-        # Row selection
-        selected_row = st.number_input("Select row to view eBird info:", min_value=0, max_value=len(data) - 1, step=1)
+        # # Row selection
+        # selected_row = st.number_input("Select row to view eBird info:", min_value=0, max_value=len(data) - 1, step=1)
+            # if st.button("Show eBird Info"):
+            #     display_ebird_info(data.iloc[selected_row])
+        
+        # if st.button("Показать eBird Info"):
+        #     display_ebird_info(data.iloc[selected_row])
 
-        if st.button("Show eBird Info"):
-            display_ebird_info(data.iloc[selected_row])
+        col_classify, col_switch, col_ = st.columns([1, 2, 2])
+
+        classify = col_classify.button("🔮 Распознать", type="primary")
+        if classify:
+            st.switch_page('ui_visualize.py')
+
+        switch_page = col_switch.button("✨ Визуализировать", type="primary")
+        if switch_page:
+            st.switch_page('ui_visualize.py')
 
         # Save updated data
-        if st.button("Save as CSV"):
+        if st.sidebar.button("Сохранить CSV"):
             csv = data.to_csv(index=False).encode('utf-8')
-            st.download_button("Download Updated CSV", csv, "updated_data.csv")
+            st.sidebar.download_button("Скачать CSV", csv, "updated_birds_data.csv")

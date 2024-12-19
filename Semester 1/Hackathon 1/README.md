@@ -14,13 +14,15 @@
 **Файловая структура:**
 ```plaintext
 app/
-│-- app.py          # Основной скрипт Streamlit приложения
-│-- core.py         # Логика обработки данных и ML
-│-- requirements.txt # Зависимости проекта
+│-- app.py            # Основной скрипт Streamlit приложения
+│-- ui_classify.py    #
+│-- ui_visualize.py   #
+│-- core.py           # Логика обработки данных и ML
+│-- requirements.txt  # Зависимости проекта
 ```
 
 **Технологический стек:**  
-- Python, Streamlit, TensorFlow, pandas, numpy, pydeck, scikit-image, imgviz, librosa, pydub
+- python, streamlit, tensorflow, pandas, numpy, pydeck, scikit-image, imgviz, librosa, pydub
 
 ## Установка и запуск
 
