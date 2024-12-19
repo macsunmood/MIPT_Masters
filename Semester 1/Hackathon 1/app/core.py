@@ -148,7 +148,7 @@ def bird_dynamics(df, bird='', longitude_left=-180, longitude_right=180, latitud
 
     df_result['Скользящее среднее (всего)'] = df_result['Общее количество записей'].rolling(3, min_periods=1).mean()
     df_result['Скользящее среднее (вида)'] = df_result['Количество записей вида'].rolling(3, min_periods=1).mean()
-    df_result['Скользящее среднее (частота)'] = df_result['Частота'].rolling(3, min_periods=1).mean()
+    df_result['Скользящее среднее (частота)'] = df_result['Скользящее среднее (вида)'] / df_result['Скользящее среднее (всего)'] * 1000
 
     df_result['Риск вымирания'] = 'Нет данных'
     for i in range(len(df_result)):
