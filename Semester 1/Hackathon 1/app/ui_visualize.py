@@ -14,7 +14,7 @@ import pydeck as pdk
 import altair as alt
 import matplotlib.pyplot as plt
 
-from core import *
+import core
 
 
 map_height = 500
@@ -79,7 +79,7 @@ with file_selector_container:
                 f.write(uploaded_video.read())  # save video to disk
 
 
-data = load_data(csvfile)
+data = core.load_data(csvfile)
 
 
 # Check for the required columns
@@ -212,7 +212,7 @@ else:
             col_map, col_info = st.columns([4, 2])
             col_stats, col_names = st.columns([4, 2])
 
-            bird_image = get_bird_image(species)
+            bird_image = core.get_bird_image(species)
             if bird_image:
                 target_height = map_height - 110
                 bird_image = Image.open(
@@ -228,7 +228,7 @@ else:
             col_names.subheader("")
 
             species_code = data[data["common_name"] == species]["primary_label"].iloc[0]
-            bird_info = get_bird_info(species_code)
+            bird_info = core.get_bird_info(species_code)
 
             if isinstance(bird_info, list) and bird_info:
                 first_bird_info = bird_info[0]
@@ -302,7 +302,7 @@ else:
             bird_code = filtered_data[filtered_data["common_name"] == species]["primary_label"].iloc[0]
 
             # Call bird_dynamics
-            df_bird_dynamics = bird_dynamics(
+            df_bird_dynamics = core.bird_dynamics(
                 df=data,
                 bird=bird_code,
                 longitude_left=lon_range[0],

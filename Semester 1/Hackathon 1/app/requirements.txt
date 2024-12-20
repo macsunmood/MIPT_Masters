@@ -11,7 +11,8 @@ pydeck
 scikit-image
 imgviz
 
-tensorflow==2.11
+tensorflow
+tensorflow_hub
 ultralytics
 
 pydub

@@ -12,9 +12,17 @@ import gdown
 import requests
 from dotenv import load_dotenv
 
-import tensorflow as tf
-from tensorflow.keras.models import load_model
+# import tensorflow as tf
+# from tensorflow.keras.models import load_model
 
+import librosa
+from tqdm import tqdm
+import tensorflow as tf
+import tensorflow_hub as hub
+
+
+import os
+os.environ['TF_ENABLE_ONEDNN_OPTS'] = '0'
 # from utils import *
 
 
@@ -26,15 +34,24 @@ EBIRD_API_URL = os.getenv("EBIRD_API_URL")
 EBIRD_API_KEY = os.getenv("EBIRD_API_KEY")
 WIKIMEDIA_API_URL = os.getenv("WIKIMEDIA_API_URL")
 
+model = None
+df_model_labels = pd.read_csv('data/labels.csv')
+
 
 # Load data from CSV
 @st.cache_data
 def load_data(file_path):
     try:
         data = pd.read_csv(file_path)
-        if "type" in data.columns:
-            data["type"] = data["type"].apply(lambda x: ast.literal_eval(x) if isinstance(x, str) else x)
-        return data
+        # if "type" in data.columns:
+        #     data["type"] = data["type"].apply(lambda x: ast.literal_eval(x) if isinstance(x, str) else x)
+        # return data
+
+        data['primary_label'] = data['primary_label'].astype(str)
+
+
+        print(data['primary_label'].dtype)
+        print(data['primary_label'].apply(type).value_counts())
     except FileNotFoundError:
         st.error(f"Файл {file_path} не найден. Проверьте путь и повторите попытку.")
         return pd.DataFrame()
@@ -90,8 +107,8 @@ def bird_dynamics(df, bird='', longitude_left=-180, longitude_right=180, latitud
     Функция выдает датафрейм с динамикой количества записей конкретного вида птиц с учетом фильтров по локации и периоду.
     Возвращает стилизованный датафрейм, где строки закрашены в цвет уровня риска.
     """
-    # Проверка необходимых параметров
-    if not bird:
+    # Проверка обязательных параметров
+    if bird == '':
         print('Необходимо указать код птицы (primary_label)!')
         return None
 
@@ -145,23 +162,25 @@ def bird_dynamics(df, bird='', longitude_left=-180, longitude_right=180, latitud
     threshold_drop_in_counts = 0.7
     threshold_drop_in_frequency = 0.8
 
-    # служебные переменные и словари для дальнейшего анализа
+    # Служебные переменные и словари для дальнейшего анализа
     first_year = df_result['Год'].min()
     last_year = df_result['Год'].max()
     dict_total = df_result.set_index('Год')['Общее количество записей'].to_dict()
     dict_bird = df_result.set_index('Год')['Количество записей вида'].to_dict()
-    # заполнение в словаре данных по пропущенным годам
+
+    # Заполнение в словаре данных по пропущенным годам
     for i in range(first_year, last_year + 1):
         if dict_total.get(i) is None:
             dict_total[i] = 0
             dict_bird[i] = 0
-    # years_list = list(df_result['Год'])
-    # создаем колонки для дальнейшего заполнения со значениями по умолчанию
+
+    # Создаем колонки для дальнейшего заполнения со значениями по умолчанию
     df_result['Скользящее среднее (всего)'] = df_result['Общее количество записей'].astype(float)
     df_result['Скользящее среднее (вида)'] = df_result['Количество записей вида'].astype(float)
     df_result['Скользящее среднее (частота)'] = df_result['Частота']
-    df_result['Уровень риска вымирания'] = 'Нет данных'
-    # заполняем колонки результирующего датафрейма (цикл по всем строкам)
+    df_result['Риск вымирания'] = 'Нет данных'
+
+    # Заполняем колонки результирующего датафрейма (цикл по всем строкам)
     for i in range(df_result.shape[0]):
         if i < 2:  # для первых двух строк средневзвешенные не считаются
             df_result.loc[i, ['Скользящее среднее (всего)']] = 0
@@ -169,24 +188,30 @@ def bird_dynamics(df, bird='', longitude_left=-180, longitude_right=180, latitud
             df_result.loc[i, ['Скользящее среднее (частота)']] = 0
         else:
             year_number = df_result.loc[i]['Год']
-            # считаем средневзвешенные за 3 года
-            df_result.loc[i, ['Скользящее среднее (всего)']] = (dict_total[year_number] + dict_total[year_number - 1] + dict_total[year_number - 2]) / 3
-            ma_birds = (dict_bird[year_number] + dict_bird[year_number - 1] + dict_bird[year_number - 2]) / 3
+            
+            # Считаем средневзвешенные за 3 года
+            df_result.loc[i, ['Скользящее среднее (всего)']] = (dict_total[year_number] + 
+                                                                dict_total[year_number - 1] + 
+                                                                dict_total[year_number - 2]) / 3
+            ma_birds = (dict_bird[year_number] + 
+                        dict_bird[year_number - 1] + 
+                        dict_bird[year_number - 2]) / 3
             df_result.loc[i, ['Скользящее среднее (вида)']] = ma_birds
             ma_frequency = df_result.loc[i]['Скользящее среднее (вида)'] / df_result.loc[i]['Скользящее среднее (всего)'] * 1000
             df_result.loc[i, ['Скользящее среднее (частота)']] = ma_frequency
-            # оцениваем показатель риска - проверяем на пробитие порогов
+            
+            # Оцениваем показатель риска - проверяем на пробитие порогов
             if (dict_total[year_number] >= min_records_in_database) and (ma_birds >= min_mov_avg_or_bird_counts):
                 if dict_bird[year_number] / ma_birds <= threshold_drop_in_counts:
                     if df_result.loc[i]['Частота'] / ma_frequency <= threshold_drop_in_frequency:
-                        df_result.loc[i, ['Уровень риска вымирания']] = 'Высокий'
+                        df_result.loc[i, ['Риск вымирания']] = 'Высокий'
                     else:
-                        df_result.loc[i, ['Уровень риска вымирания']] = 'Средний'
+                        df_result.loc[i, ['Риск вымирания']] = 'Средний'
                 else:
                     if df_result.loc[i]['Частота'] / ma_frequency <= threshold_drop_in_frequency:
-                        df_result.loc[i, ['Уровень риска вымирания']] = 'Средний'
+                        df_result.loc[i, ['Риск вымирания']] = 'Средний'
                     else:
-                        df_result.loc[i, ['Уровень риска вымирания']] = 'Низкий'
+                        df_result.loc[i, ['Риск вымирания']] = 'Низкий'
 
     return df_result
 
@@ -228,11 +253,20 @@ def get_classes_dict(model):
 
 
 @st.cache_resource
+def load_model():
+    model_url = 'https://kaggle.com/models/google/bird-vocalization-classifier/frameworks/tensorFlow2/variations/bird-vocalization-classifier/versions/4'
+            # 'https://kaggle.com/models/google/bird-vocalization-classifier/TensorFlow2/bird-vocalization-classifier'
+    global model
+    model = hub.load(model_url)
+
+
+
+@st.cache_resource
 def load_models(models_urls, models_dir='models'):
     '''Load pretrained models'''
     # Open a new TensorFlow session
-    config = tf.compat.v1.ConfigProto(allow_soft_placement=True)
-    session = tf.compat.v1.Session(config=config)
+    # config = tf.compat.v1.ConfigProto(allow_soft_placement=True)
+    # session = tf.compat.v1.Session(config=config)
     with session.as_default():
         models = {}
         save_dest = Path(models_dir)
@@ -268,6 +302,37 @@ def make_prediction(model, features, batch_size):
     # pred_proba = model.predict_proba(features, 1)
     pred = np.argmax(pred_proba, axis=-1)
     return pred_proba, pred
+
+def predict_species(filename):
+    # функция меняет sample rate. Это нужно, так как модель обучена на 32000 Hz
+    def resample_rate(audio, sample_rate, new_sample_rate=32000):
+        if sample_rate != new_sample_rate:
+            audio = librosa.resample(audio, orig_sr=sample_rate, target_sr=new_sample_rate)
+        return audio, new_sample_rate
+
+    # функция разбивает запись на фреймы по 5 секунд, так как модель обучена на работе с 5 секундными записями
+    def break_into_frames(audio, sample_rate, window_size=5.0, step_size=5.0) -> np.ndarray:
+        frame_length = int(window_size * sample_rate)
+        frame_step  = int(step_size * sample_rate)
+        framed_audio = tf.signal.frame(audio, frame_length, frame_step, pad_end=True)  # разбитое на фреймы аудио
+        return framed_audio
+
+    # получим предсказание для первого фрейма одной записи
+    audio, sample_rate = librosa.load("audio/{filename}")
+
+    audio, sample_rate = resample_rate(audio, sample_rate)
+    framed_audio = break_into_frames(audio, sample_rate)  # разбитое на фреймы аудио
+
+    logits, embeddings = model.infer_tf(framed_audio[0:1])  # получаем прогноз для первого фрейма
+    embeddings = tf.nn.softmax(logits)
+
+    # embeddings = model.infer_tf(framed_audio[0:1])['embedding']  # получаем прогноз для первого фрейма
+
+    argmax = np.argmax(embeddings)
+    birds_kind = df_model_labels.iloc[argmax]['ebird2021']
+    probability = embeddings[0][argmax]
+    print(f"Предсказанный вид птицы по первому фрейму: {birds_kind}, с вероятностью: {probability}")
+    return birds_kind
 
 
 def recognize_class(model, features):

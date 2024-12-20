@@ -15,14 +15,16 @@ import numpy as np
 # from urllib.request import urlopen
 from dotenv import load_dotenv
 
-from sklearn.ensemble import RandomForestClassifier
-from sklearn.model_selection import train_test_split
-from sklearn.metrics import accuracy_score
+# from sklearn.ensemble import RandomForestClassifier
+# from sklearn.model_selection import train_test_split
+# from sklearn.metrics import accuracy_score
 import time
 import requests
 
-from core import *
+import core
 
+
+core.load_model()
 
 # Sidebar: File upload
 st.sidebar.header("Загрузка CSV файла")
@@ -31,9 +33,14 @@ uploaded_file = st.sidebar.file_uploader('Выберите CSV файл', type="
 
 # Placeholder for data
 data = None
+data_ph = st.empty()
 model = None
 
-features_list = ["primary_label", "latitude", "longitude", "scientific_name", "common_name", "date", "season"]
+features_list = [
+    'primary_label', 'common_name', 'scientific_name', 
+    'latitude', 'longitude', 'date', 'season', 
+    # url', 'filename'
+]
 
 
 def validate_file(file):
@@ -77,7 +84,7 @@ def display_ebird_info(row):
     st.subheader("eBird Information")
     species = row['primary_label']
 
-    bird_info = get_bird_info(species)
+    bird_info = core.get_bird_info(species)
 
     st.write(bird_info)
     # # Display sample image
@@ -93,35 +100,35 @@ if uploaded_file:
 
     
     if data is not None:
-        # Check for 'primary_label' column
-        if 'primary_label' not in data.columns:
-            st.warning("Column 'primary_label' is missing. It will be predicted using the model.")
-            data['primary_label'] = np.nan
+        # # Check for 'primary_label' column
+        # if 'primary_label' not in data.columns:
+        #     st.warning("Column 'primary_label' is missing. It will be predicted using the model.")
+        #     data['primary_label'] = np.nan
 
-        # Check for missing values in 'primary_label'
-        if data['primary_label'].isna().any():
-            if st.button("Recognize Missing Classes"):
-                # Train a simple model for demonstration purposes
-                st.info("Training model...")
-                X = data.drop(columns=['primary_label']).dropna()
-                y = data['primary_label'].dropna()
+        # # Check for missing values in 'primary_label'
+        # if data['primary_label'].isna().any():
+        #     if st.button("Recognize Missing Classes"):
+        #         # Train a simple model for demonstration purposes
+        #         st.info("Training model...")
+        #         X = data.drop(columns=['primary_label']).dropna()
+        #         y = data['primary_label'].dropna()
 
-                X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2, random_state=42)
+        #         X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2, random_state=42)
 
-                model = RandomForestClassifier()
-                model.fit(X_train, y_train)
+        #         model = RandomForestClassifier()
+        #         model.fit(X_train, y_train)
 
-                y_pred = model.predict(X_test)
-                st.info(f"Model Accuracy: {accuracy_score(y_test, y_pred):.2f}")
+        #         y_pred = model.predict(X_test)
+        #         st.info(f"Model Accuracy: {accuracy_score(y_test, y_pred):.2f}")
 
-                # Recognize missing classes
-                data = recognize_classes(data, model)
+        #         # Recognize missing classes
+        #         data = recognize_classes(data, model)
 
 
         # Display data
         col1, col2, col3 = st.columns([1, 2, 2])
         # st.subheader("Data Preview")
-        st.dataframe(data, use_container_width=True)
+        data_ph.dataframe(data, use_container_width=True)
 
 
         # Filtering
@@ -142,8 +149,46 @@ if uploaded_file:
         col_classify, col_switch, col_ = st.columns([1, 2, 2])
 
         classify = col_classify.button("🔮 Распознать", type="primary")
-        if classify:
-            st.switch_page('ui_visualize.py')
+        if classify:  # and 'Convert' in mode:
+            output_ext = '.csv'
+            # output_file = f'{os.path.splitext(videofile)[0]}_{task}_masked{output_ext}'
+
+            progress_bar = st.progress(0)
+
+            # if 'primary_label' not in data.columns:
+            #     target_column = if 'primary_label' not in data.columns
+            data['predicted'] = None
+            columns = ['primary_label', 'predicted'] + [col for col in data.columns if col not in ['primary_label', 'predicted']]
+            data = data[columns]
+
+            data_ph.dataframe(data, use_container_width=True)
+
+
+            import time
+            # Применяем функцию predict() к каждому значению в столбце 'filename' и обновляем колонку 'predicted'
+            for i, row in data.iterrows():
+                data.at[i, 'predicted'] = core.predict_species(row['filename'])
+                
+                progress_bar.progress((i + 1) / len(data))
+
+                time.sleep(0.2)
+
+                data_ph.dataframe(data, use_container_width=True)
+
+                # data['predicted'] = data['filename'].apply(predict_species)
+
+            # core.predict_species(model)
+            #                 # videofile, 
+            #                 #    output_file, 
+            #                 #    frame_rate, 
+            #                 #    (frame_width, frame_height),
+
+            #                 #    task=task, 
+            #                 #    is_yolo=is_yolo, 
+            #                 #    to_resize=to_resize, 
+            #                 #    image_size=image_size, 
+            #                 #    draw_titles=draw_titles,
+            #                 #    col_stop_button=col_stop_button)
 
         switch_page = col_switch.button("✨ Визуализировать", type="primary")
         if switch_page:

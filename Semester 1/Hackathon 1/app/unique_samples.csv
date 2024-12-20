@@ -1,0 +1,39 @@
+primary_label,common_name,scientific_name,latitude,longitude,date,season,url,filename
+amerob,American Robin,Turdus migratorius,43.077,-96.17,2012-06-23,Summer,https://www.xeno-canto.org/107523,XC107523.ogg
+banana,Bananaquit,Coereba flaveola,-12.8659,-71.367,2012-10-23,Fall,https://www.xeno-canto.org/112602,XC112602.ogg
+barswa,Barn Swallow,Hirundo rustica,29.267,-108.1098,2006-07-17,Summer,https://www.xeno-canto.org/11464,XC11464.ogg
+bcnher,Black-crowned Night-Heron,Nycticorax nycticorax,4.782,-71.774,2012-11-26,Fall,https://www.xeno-canto.org/115512,XC115512.ogg
+bewwre,Bewick's Wren,Thryomanes bewickii,37.3062,-122.0617,2012-09-03,Fall,https://www.xeno-canto.org/109604,XC109604.ogg
+blujay,Blue Jay,Cyanocitta cristata,44.977,-93.324,2012-08-18,Summer,https://www.xeno-canto.org/108404,XC108404.ogg
+bncfly,Brown-crested Flycatcher,Myiarchus tyrannulus,4.8,-71.35,2012-02-11,Winter,https://www.xeno-canto.org/113984,XC113984.ogg
+carwre,Carolina Wren,Thryothorus ludovicianus,28.899,-81.808,2012-05-22,Spring,https://www.xeno-canto.org/109026,XC109026.ogg
+comrav,Common Raven,Corvus corax,37.3144,-122.0632,2012-09-09,Fall,https://www.xeno-canto.org/110257,XC110257.ogg
+comyel,Common Yellowthroat,Geothlypis trichas,44.942,-93.259,2012-05-21,Spring,https://www.xeno-canto.org/101611,XC101611.ogg
+cubthr,Curve-billed Thrasher,Toxostoma curvirostre,27.1716,-107.9846,2013-02-25,Winter,https://www.xeno-canto.org/125479,XC125479.ogg
+daejun,Dark-eyed Junco,Junco hyemalis,43.719,-103.4808,2012-06-17,Summer,https://www.xeno-canto.org/104511,XC104511.ogg
+eucdov,Eurasian Collared-Dove,Streptopelia decaocto,58.2765,14.2763,2012-06-05,Summer,https://www.xeno-canto.org/110377,XC110377.ogg
+eursta,European Starling,Sturnus vulgaris,58.4278,14.2273,2012-03-23,Spring,https://www.xeno-canto.org/110356,XC110356.ogg
+gbwwre1,Gray-breasted Wood-Wren,Henicorhina leucophrys,0.0287,-78.8628,2012-08-25,Summer,https://www.xeno-canto.org/108600,XC108600.ogg
+grekis,Great Kiskadee,Pitangus sulphuratus,9.124,-79.7104,2012-08-28,Summer,https://www.xeno-canto.org/113044,XC113044.ogg
+houspa,House Sparrow,Passer domesticus,24.3259,56.6696,2009-12-27,Winter,https://www.xeno-canto.org/112666,XC112666.ogg
+houwre,House Wren,Troglodytes aedon,13.947,-87.247,2012-11-06,Fall,https://www.xeno-canto.org/112519,XC112519.ogg
+lobgna5,Long-billed Gnatwren,Ramphocaenus melanurus,9.127,-79.715,2012-08-08,Summer,https://www.xeno-canto.org/112870,XC112870.ogg
+mallar3,Mallard,Anas platyrhynchos,48.416,16.976,2012-06-19,Summer,https://www.xeno-canto.org/104614,XC104614.ogg
+marwre,Marsh Wren,Cistothorus palustris,44.8298,-93.2462,2012-07-14,Summer,https://www.xeno-canto.org/105804,XC105804.ogg
+norcar,Northern Cardinal,Cardinalis cardinalis,28.899,-81.808,2012-05-22,Spring,https://www.xeno-canto.org/109034,XC109034.ogg
+normoc,Northern Mockingbird,Mimus polyglottos,35.8589,-84.0948,2012-09-19,Fall,https://www.xeno-canto.org/110060,XC110060.ogg
+redcro,Red Crossbill,Loxia curvirostra,47.3174,-122.5468,2012-09-20,Fall,https://www.xeno-canto.org/110116,XC110116.ogg
+rewbla,Red-winged Blackbird,Agelaius phoeniceus,28.899,-81.808,2012-05-22,Spring,https://www.xeno-canto.org/109040,XC109040.ogg
+roahaw,Roadside Hawk,Rupornis magnirostris,8.5194,-83.4071,2012-08-18,Summer,https://www.xeno-canto.org/112987,XC112987.ogg
+rubpep1,Rufous-browed Peppershrike,Cyclarhis gujanensis,-6.387636,-79.103622,2008-08-14,Summer,https://www.xeno-canto.org/108749,XC108749.ogg
+rucspa1,Rufous-collared Sparrow,Zonotrichia capensis,-33.4549,-70.5175,2012-11-13,Fall,https://www.xeno-canto.org/112733,XC112733.ogg
+sonspa,Song Sparrow,Melospiza melodia,37.3144,-122.0632,2012-09-05,Fall,https://www.xeno-canto.org/109669,XC109669.ogg
+spotow,Spotted Towhee,Pipilo maculatus,43.6651,-103.3862,2012-06-21,Summer,https://www.xeno-canto.org/104526,XC104526.ogg
+swathr,Swainson's Thrush,Catharus ustulatus,48.578,-123.3731,2012-07-07,Summer,https://www.xeno-canto.org/114401,XC114401.ogg
+warvir,Warbling Vireo,Vireo gilvus,44.977,-93.324,2012-05-27,Spring,https://www.xeno-canto.org/102286,XC102286.ogg
+wbwwre1,White-breasted Wood-Wren,Henicorhina leucosticta,9.1334,-79.6501,2000-12-24,Winter,https://www.xeno-canto.org/10552,XC10552.ogg
+wesmea,Western Meadowlark,Sturnella neglecta,43.6405,-103.3732,2012-06-19,Summer,https://www.xeno-canto.org/104522,XC104522.ogg
+whbnut,White-breasted Nuthatch,Sitta carolinensis,48.3921,-119.8086,2012-09-24,Fall,https://www.xeno-canto.org/110384,XC110384.ogg
+whcspa,White-crowned Sparrow,Zonotrichia leucophrys,37.016,-113.817,2012-11-25,Fall,https://www.xeno-canto.org/114666,XC114666.ogg
+whimbr,Whimbrel,Numenius phaeopus,64.4655,-165.1492,2013-05-25,Spring,https://www.xeno-canto.org/135140,XC135140.ogg
+yeofly1,Yellow-olive Flycatcher,Tolmomyias sulphurescens,-26.519,-53.991,2012-05-18,Spring,https://www.xeno-canto.org/114463,XC114463.ogg
