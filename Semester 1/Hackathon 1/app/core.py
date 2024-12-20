@@ -15,8 +15,6 @@ from dotenv import load_dotenv
 import tensorflow as tf
 from tensorflow.keras.models import load_model
 
-import speech_recognition as sr
-
 # from utils import *
 
 
@@ -59,6 +57,7 @@ def get_bird_info(species_code):
 
 
 # Retrieve bird image via Wikimedia API
+# @st.cache_data
 def get_bird_image(bird_name):
     formatted_bird_name = bird_name.replace(" ", "_").lower()
     params = {
@@ -84,7 +83,7 @@ def get_bird_image(bird_name):
         return None
 
 
-# Function for tracking the dynamics
+# Core function for tracking the dynamics
 def bird_dynamics(df, bird='', longitude_left=-180, longitude_right=180, latitude_min=-90, latitude_max=90,
                   start_date=None, end_date=None, selected_seasons=None):
     """
@@ -173,7 +172,10 @@ def bird_dynamics(df, bird='', longitude_left=-180, longitude_right=180, latitud
 
 
 BATCH_SIZE = 64
-CLASSES_DICT = {0: 'england', 1: 'us'}
+CLASSES_DICT = {
+    0: '0', 
+    1: '1'
+}
 
 
 ###==============================================
