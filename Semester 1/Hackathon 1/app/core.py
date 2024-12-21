@@ -1,6 +1,7 @@
 import streamlit as st
 
 import os
+import re
 import ast
 
 from pathlib import Path
@@ -12,18 +13,31 @@ import gdown
 import requests
 from dotenv import load_dotenv
 
-# import tensorflow as tf
+import tensorflow as tf
 # from tensorflow.keras.models import load_model
+# from tensorflow.saved_model import load
 
 import librosa
 from tqdm import tqdm
-import tensorflow as tf
-import tensorflow_hub as hub
+# import tensorflow as tf
+# import tensorflow_hub as hub
+
+# import scipy.signal
+# import scipy.interpolate
+
+# print('Scipy modules loaded successfully')
+
 
 
 import os
 os.environ['TF_ENABLE_ONEDNN_OPTS'] = '0'
 # from utils import *
+
+import tensorflow as tf
+physical_devices = tf.config.list_physical_devices('GPU')
+if physical_devices:
+    tf.config.experimental.set_memory_growth(physical_devices[0], True)
+
 
 
 # Load environment variables from .env file
@@ -43,15 +57,23 @@ df_model_labels = pd.read_csv('data/labels.csv')
 def load_data(file_path):
     try:
         data = pd.read_csv(file_path)
+
+        # st.write()
+        # data['primary_label'].dtype
+        # data['primary_label'].apply(type).value_counts()
+        # st.write()
+
+        # v1 = data['primary_label'].dtype
+        # v2 = data['primary_label'].apply(type).value_counts()
+
         # if "type" in data.columns:
         #     data["type"] = data["type"].apply(lambda x: ast.literal_eval(x) if isinstance(x, str) else x)
-        # return data
 
-        data['primary_label'] = data['primary_label'].astype(str)
+        # data['primary_label'] = data['primary_label'].astype(str)
 
-
-        print(data['primary_label'].dtype)
-        print(data['primary_label'].apply(type).value_counts())
+        return data
+        # print(data['primary_label'].dtype)
+        # print(data['primary_label'].apply(type).value_counts())
     except FileNotFoundError:
         st.error(f"Файл {file_path} не найден. Проверьте путь и повторите попытку.")
         return pd.DataFrame()
@@ -252,12 +274,16 @@ def get_classes_dict(model):
     return {int(k): v for k, v in d.items()}
 
 
-@st.cache_resource
-def load_model():
+# @st.cache_resource
+def load_model__():
     model_url = 'https://kaggle.com/models/google/bird-vocalization-classifier/frameworks/tensorFlow2/variations/bird-vocalization-classifier/versions/4'
             # 'https://kaggle.com/models/google/bird-vocalization-classifier/TensorFlow2/bird-vocalization-classifier'
     global model
-    model = hub.load(model_url)
+    # model = hub.load(model_url)
+
+    model = tf.saved_model.load('models\perch_v4')
+
+    # model = load_model('model\saved_model.pb')
 
 
 
@@ -265,8 +291,8 @@ def load_model():
 def load_models(models_urls, models_dir='models'):
     '''Load pretrained models'''
     # Open a new TensorFlow session
-    # config = tf.compat.v1.ConfigProto(allow_soft_placement=True)
-    # session = tf.compat.v1.Session(config=config)
+    config = tf.compat.v1.ConfigProto(allow_soft_placement=True)
+    session = tf.compat.v1.Session(config=config)
     with session.as_default():
         models = {}
         save_dest = Path(models_dir)
@@ -303,7 +329,36 @@ def make_prediction(model, features, batch_size):
     pred = np.argmax(pred_proba, axis=-1)
     return pred_proba, pred
 
-def predict_species(filename):
+
+def download_xeno_canto_audio(folder_path, filename):
+    # ID записи - поиск числа в названии файла
+    match = re.search(r'\d+', filename)
+    if match:
+        record_id = match.group()
+
+    # URL API
+    api_url = f"https://www.xeno-canto.org/api/2/recordings?query=nr:{record_id}"
+
+    # Запрос к API
+    response = requests.get(api_url)
+    data = response.json()
+
+    # Получение ссылки на файл
+    if data['recordings']:
+        file_url = data['recordings'][0]['file']
+        print(f"Ссылка на аудиофайл: {file_url}")
+
+        # Скачивание аудиофайла
+        audio_response = requests.get(file_url)
+        new_file_name = f"XC{record_id}.ogg"
+        with open(os.path.join(folder_path, new_file_name), "wb") as f:
+            f.write(audio_response.content)
+        print(f"Файл {new_file_name}.mp3 сохранен.")
+    else:
+        print("Запись не найдена.")
+
+
+def predict_species(csv_name, filename):
     # функция меняет sample rate. Это нужно, так как модель обучена на 32000 Hz
     def resample_rate(audio, sample_rate, new_sample_rate=32000):
         if sample_rate != new_sample_rate:
@@ -317,8 +372,23 @@ def predict_species(filename):
         framed_audio = tf.signal.frame(audio, frame_length, frame_step, pad_end=True)  # разбитое на фреймы аудио
         return framed_audio
 
+    # Формируем имя папки
+    name, ext = os.path.splitext(csv_name)
+    folder_name = f"{name}__{ext.lstrip('.')}"
+    folder_path = os.path.join("audio", folder_name)
+    full_path = os.path.join(folder_path, filename)
+
+    if not os.path.exists(full_path):
+        # Проверяем и создаём папку
+        os.makedirs(folder_path, exist_ok=True)
+        # print(folder_name, os.path.exists(folder_name))
+        download_xeno_canto_audio(folder_path, filename)
+
+        # if not os.path.exists(folder_name):
+        #     os.makedirs(folder_name)
+
     # получим предсказание для первого фрейма одной записи
-    audio, sample_rate = librosa.load("audio/{filename}")
+    audio, sample_rate = librosa.load(full_path)
 
     audio, sample_rate = resample_rate(audio, sample_rate)
     framed_audio = break_into_frames(audio, sample_rate)  # разбитое на фреймы аудио

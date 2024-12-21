@@ -20,10 +20,6 @@ import core
 map_height = 500
 
 
-# # Random color generation
-# def random_color(alpha=160):
-#     return [random.randint(0, 255) for _ in range(3)] + [alpha]
-
 # Pick a predefined palette
 PALETTE = plt.cm.tab20.colors
 PALETTE = [tuple(int(c * 255) for c in color) + (160,) for color in PALETTE]  # convert to RGBA format
@@ -45,18 +41,18 @@ file_selector_container = st.sidebar.expander(
     # expanded=st.session_state['file_selector_is_expanded']
 )
 
-global csvfile
-# csvfile = None
-csvfile = "./top_30.csv"
+global csv_file
+# csv_file = None
+csv_file = "./top_30.csv"
 
 # Choose file upload mode
 with file_selector_container:
-    video_extensions = ['.csv']
+    file_extensions = ['.csv']
     upload_mode = st.toggle('Local dir', help='Выбор между загрузкой и списком файлов локального каталога', value=True)
 
     if upload_mode:
         def file_selector(folder_path='.'):
-            is_video_file = lambda f: any(f.lower().endswith(ext) for ext in video_extensions)
+            is_video_file = lambda f: any(f.lower().endswith(ext) for ext in file_extensions)
 
             video_files = [f for f in os.listdir(folder_path) if is_video_file(f)]
 
@@ -71,21 +67,27 @@ with file_selector_container:
         # videofile_name = os.path.split(videofile)[-1]
         # file_path_input = st.text_input('CSV file path:', videofile)
     else:
-        uploaded_video = st.file_uploader('Загрузить CSV файл', type=video_extensions)
-        # videofile_name = uploaded_video.name if uploaded_video else ''
-        if uploaded_video:
-            csvfile = uploaded_video.name
+        uploaded_csv = st.file_uploader('Загрузить CSV файл', type=file_extensions)
+        # videofile_name = uploaded_csv.name if uploaded_csv else ''
+        if uploaded_csv:
+            csv_file = uploaded_csv.name
             with open(videofile, mode='wb') as f:
-                f.write(uploaded_video.read())  # save video to disk
+                f.write(uploaded_csv.read())  # save video to disk
 
 
-data = core.load_data(csvfile)
+if 'data' in st.session_state:
+    data = st.session_state.data
+    # st.write("Statistics of the DataFrame:")
+else:
+    data = core.load_data(csv_file)
+    # st.write("No DataFrame found. Please create it in the 'Create DataFrame' page.")
+
 
 
 # Check for the required columns
 required_columns = {"latitude", "longitude", "common_name", "primary_label", "date"}
 if not required_columns.issubset(data.columns):
-    st.error(f"Файл {csvfile} должен содержать следующие столбцы: {', '.join(required_columns)}")
+    st.error(f"Файл {csv_file} должен содержать следующие столбцы: {', '.join(required_columns)}")
 else:
     unique_species = data["common_name"].unique()
 
@@ -284,10 +286,10 @@ else:
         col_stats.subheader("Статистика наблюдений 🐦")
 
 
-
         df_stats = pd.DataFrame(stats_data)
         col_stats.markdown(df_stats.style.hide(axis="index").to_html(), unsafe_allow_html=True)
         # col_stats.dataframe(df_stats, hide_index=True, use_container_width=True)
+
 
         # # Отступ
         # placeholder = st.empty()

@@ -24,7 +24,7 @@ import requests
 import core
 
 
-core.load_model()
+core.load_model__()
 
 # Sidebar: File upload
 st.sidebar.header("Загрузка CSV файла")
@@ -34,6 +34,7 @@ uploaded_file = st.sidebar.file_uploader('Выберите CSV файл', type="
 # Placeholder for data
 data = None
 data_ph = st.empty()
+
 model = None
 
 features_list = [
@@ -43,9 +44,9 @@ features_list = [
 ]
 
 
-def validate_file(file):
+def validate_file(csv_file):
     try:
-        df = pd.read_csv(file)
+        df = pd.read_csv(csv_file)
         if not all(col in df.columns for col in features_list):
             st.error("The file must contain the following columns: " + ", ".join(features_list))
             return None
@@ -98,6 +99,8 @@ if uploaded_file:
     # Validate file structure
     data = validate_file(uploaded_file)
 
+    data['primary_label'] = data['primary_label'].astype(str)
+
     
     if data is not None:
         # # Check for 'primary_label' column
@@ -125,6 +128,7 @@ if uploaded_file:
         #         data = recognize_classes(data, model)
 
 
+
         # Display data
         col1, col2, col3 = st.columns([1, 2, 2])
         # st.subheader("Data Preview")
@@ -149,11 +153,22 @@ if uploaded_file:
         col_classify, col_switch, col_ = st.columns([1, 2, 2])
 
         classify = col_classify.button("🔮 Распознать", type="primary")
+
         if classify:  # and 'Convert' in mode:
             output_ext = '.csv'
             # output_file = f'{os.path.splitext(videofile)[0]}_{task}_masked{output_ext}'
 
-            progress_bar = st.progress(0)
+            progress = st.progress(0)
+
+            # Функция для стилизации строк
+            def highlight_row(row_index, col_name):
+                def style_row(row):
+                    if row.name == row_index:
+                        # Выделение текущей строки серым
+                        return ['background-color: lightgray' if col != col_name else 'background-color: skyblue' 
+                                for col in row.index]
+                    return [''] * len(row)
+                return style_row
 
             # if 'primary_label' not in data.columns:
             #     target_column = if 'primary_label' not in data.columns
@@ -163,19 +178,30 @@ if uploaded_file:
 
             data_ph.dataframe(data, use_container_width=True)
 
-
-            import time
             # Применяем функцию predict() к каждому значению в столбце 'filename' и обновляем колонку 'predicted'
             for i, row in data.iterrows():
-                data.at[i, 'predicted'] = core.predict_species(row['filename'])
+                data.at[i, 'predicted'] = core.predict_species(uploaded_file.name, row['filename'])
                 
-                progress_bar.progress((i + 1) / len(data))
+                progress.progress((i + 1) / len(data))  # update the progress bar
 
-                time.sleep(0.2)
+                # Apply styles to highlight the current row and cell
+                styled_data = data.style.apply(highlight_row(i, 'predicted'), axis=1)
 
-                data_ph.dataframe(data, use_container_width=True)
+                # data_ph.dataframe(data, use_container_width=True)
+                data_ph.dataframe(styled_data, use_container_width=True)
 
                 # data['predicted'] = data['filename'].apply(predict_species)
+    
+            # After completion, display the table without styles
+            data_ph.dataframe(data, use_container_width=True)
+
+            # Share data with another page via session_state
+            if 'data' not in st.session_state:
+                st.session_state.data = data
+
+            # progress.empty()  # remove the progress bar
+
+            progress.success("Классификация успешно завершена!")
 
             # core.predict_species(model)
             #                 # videofile, 
