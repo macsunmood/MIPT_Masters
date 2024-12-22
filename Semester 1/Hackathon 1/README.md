@@ -13,12 +13,19 @@
 
 **Файловая структура:**
 ```plaintext
-app/
-│-- app.py            # Основной скрипт Streamlit приложения
-│-- ui_classify.py    #
-│-- ui_visualize.py   #
-│-- core.py           # Логика обработки данных и ML
-│-- requirements.txt  # Зависимости проекта
+project_root/
+│-- README.md
+│-- [Hackathon_1]_BirdCLEF_EDA_and_Preprocessing.ipynb     # Ноутбук с проведённым EDA и предобработкой данных
+│-- [Hackathon_1]_BirdCLEF_Model_Training-Effnetv2.ipynb   # Ноутбук с полным процессом дообучения модели EfficientNetV2-B2
+│-- dataset/                                               # Директория с датасетами 2021 и 2024 гг.
+│-- app/                                                   # Директория с кодом приложения
+    │-- app.py                                             # Основной скрипт Streamlit приложения
+    │-- ui_classify.py                                     # Интерфейс классификации видов
+    │-- ui_visualize.py                                    # Интерфейс визуализации и аналитики
+    │-- core_.py                                           # Логика обработки данных и ML
+    │-- requirements.txt                                   # Зависимости проекта
+    │-- to_predict__train.csv                              # Файл метаданных аудиозаписей, на которых была обучена модель
+    │-- models/                                            # Директория для хранения моделей
 ```
 
 **Технологический стек:**  
@@ -50,9 +57,9 @@ streamlit run app.py
 
 |                      | Участник             | Роли и задачи                             |
 |-----------------------|------------------|-------------------------------------------|
-| **Teamlead**         | Шумилин Антон    | ... |
-| **Data Engineer**     | Николай Аушкап   | ... |
-| **Data Engineer**     | Мартынов Алексей | ... |
-| **Data Analyst**      | Фахретдинов Муса | ... |
-| **Frontend Dev**      | Лаврухина Виктория | ... |
-| **Data Analyst**      | Фивейский Сергей | ... |
+| **Teamlead**         | Шумилин Антон    | ML Engineering, Data Preprocessing, Streamlit |
+| **Data Engineer**     | Николай Аушкап   | EDA, ML Engineering |
+| **Data Engineer**     | Мартынов Алексей | EDA, Data Proprocessing |
+| **Data Analyst**      | Фахретдинов Муса | EDA, Data Proprocessing |
+| **Frontend Dev**      | Лаврухина Виктория | Streamlit, Viz, API, EDA |
+| **Data Analyst**      | Фивейский Сергей | Data Preprocessing |

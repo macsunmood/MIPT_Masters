@@ -21,21 +21,29 @@ from dotenv import load_dotenv
 import time
 import requests
 
-import core
+import core_
 
 
-core.load_model__()
+# Load pretrained models and start new tensorflow session
+# session, MODELS = load_models(MODELS_GDRIVE)
+session, MODELS = core_.load_models()
+# core.load_model__()
 
 # Sidebar: File upload
 st.sidebar.header("Загрузка CSV файла")
 uploaded_file = st.sidebar.file_uploader('Выберите CSV файл', type="csv")
 
+# Sidebar: Model selection
+global option_model
+option_model = st.sidebar.radio('Model:', [m for m in MODELS])
+
+global model
+model = MODELS[option_model]  # get the currently selected model
+
 
 # Placeholder for data
 data = None
 data_ph = st.empty()
-
-model = None
 
 features_list = [
     'primary_label', 'common_name', 'scientific_name', 
@@ -85,7 +93,7 @@ def display_ebird_info(row):
     st.subheader("eBird Information")
     species = row['primary_label']
 
-    bird_info = core.get_bird_info(species)
+    bird_info = core_.get_bird_info(species)
 
     st.write(bird_info)
     # # Display sample image
@@ -159,6 +167,7 @@ if uploaded_file:
             # output_file = f'{os.path.splitext(videofile)[0]}_{task}_masked{output_ext}'
 
             progress = st.progress(0)
+            success = st.empty()
 
             # Функция для стилизации строк
             def highlight_row(row_index, col_name):
@@ -170,22 +179,27 @@ if uploaded_file:
                     return [''] * len(row)
                 return style_row
 
-            # if 'primary_label' not in data.columns:
-            #     target_column = if 'primary_label' not in data.columns
-            data['predicted'] = None
-            columns = ['primary_label', 'predicted'] + [col for col in data.columns if col not in ['primary_label', 'predicted']]
-            data = data[columns]
+            if data['primary_label'].isna().all() or (data['primary_label'] == 'nan').all():
+                target_col = 'primary_label'
+            else:
+                target_col = 'predicted'
+                data[target_col] = None
+                columns = ['primary_label', 'predicted'] + [col for col in data.columns if col not in ['primary_label', 'predicted']]
+                data = data[columns]
 
             data_ph.dataframe(data, use_container_width=True)
 
             # Применяем функцию predict() к каждому значению в столбце 'filename' и обновляем колонку 'predicted'
             for i, row in data.iterrows():
-                data.at[i, 'predicted'] = core.predict_species(uploaded_file.name, row['filename'])
+                birds_kind, probability = core_.predict_species(uploaded_file.name, row['filename'], model, option_model)
+                data.at[i, target_col] = birds_kind
                 
                 progress.progress((i + 1) / len(data))  # update the progress bar
 
                 # Apply styles to highlight the current row and cell
-                styled_data = data.style.apply(highlight_row(i, 'predicted'), axis=1)
+                styled_data = data.style.apply(highlight_row(i, target_col), axis=1)
+
+                success.success(f"Предсказанный вид птицы: {birds_kind}; Вероятность: {probability:.2f}")
 
                 # data_ph.dataframe(data, use_container_width=True)
                 data_ph.dataframe(styled_data, use_container_width=True)
@@ -199,22 +213,9 @@ if uploaded_file:
             if 'data' not in st.session_state:
                 st.session_state.data = data
 
-            # progress.empty()  # remove the progress bar
+            progress.empty()  # remove the progress bar
 
-            progress.success("Классификация успешно завершена!")
-
-            # core.predict_species(model)
-            #                 # videofile, 
-            #                 #    output_file, 
-            #                 #    frame_rate, 
-            #                 #    (frame_width, frame_height),
-
-            #                 #    task=task, 
-            #                 #    is_yolo=is_yolo, 
-            #                 #    to_resize=to_resize, 
-            #                 #    image_size=image_size, 
-            #                 #    draw_titles=draw_titles,
-            #                 #    col_stop_button=col_stop_button)
+            success.success("Классификация успешно завершена!")
 
         switch_page = col_switch.button("✨ Визуализировать", type="primary")
         if switch_page:

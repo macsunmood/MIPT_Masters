@@ -14,7 +14,7 @@ import pydeck as pdk
 import altair as alt
 import matplotlib.pyplot as plt
 
-import core
+import core_
 
 
 map_height = 500
@@ -79,7 +79,7 @@ if 'data' in st.session_state:
     data = st.session_state.data
     # st.write("Statistics of the DataFrame:")
 else:
-    data = core.load_data(csv_file)
+    data = core_.load_data(csv_file)
     # st.write("No DataFrame found. Please create it in the 'Create DataFrame' page.")
 
 
@@ -214,7 +214,7 @@ else:
             col_map, col_info = st.columns([4, 2])
             col_stats, col_names = st.columns([4, 2])
 
-            bird_image = core.get_bird_image(species)
+            bird_image = core_.get_bird_image(species)
             if bird_image:
                 target_height = map_height - 110
                 bird_image = Image.open(
@@ -230,7 +230,7 @@ else:
             col_names.subheader("")
 
             species_code = data[data["common_name"] == species]["primary_label"].iloc[0]
-            bird_info = core.get_bird_info(species_code)
+            bird_info = core_.get_bird_info(species_code)
 
             if isinstance(bird_info, list) and bird_info:
                 first_bird_info = bird_info[0]
@@ -304,7 +304,7 @@ else:
             bird_code = filtered_data[filtered_data["common_name"] == species]["primary_label"].iloc[0]
 
             # Call bird_dynamics
-            df_bird_dynamics = core.bird_dynamics(
+            df_bird_dynamics = core_.bird_dynamics(
                 df=data,
                 bird=bird_code,
                 longitude_left=lon_range[0],

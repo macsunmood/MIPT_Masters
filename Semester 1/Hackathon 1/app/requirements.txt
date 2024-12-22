@@ -5,6 +5,7 @@ pandas==2.1.0
 scipy==1.13.1
 pyarrow==14.0.0
 python-dotenv
+gdown
 
 matplotlib==3.7.2
 altair
@@ -14,9 +15,12 @@ scikit-image
 imgviz
 
 tensorflow==2.14.0
+tensorflow_io
+tf-keras==2.17.0
+keras==3.4.1
+keras-cv==0.9.0
+tensorflow_datasets==4.9.2
 tensorflow_hub
-keras==2.14.0
-ultralytics
 
 pydub
 librosa
