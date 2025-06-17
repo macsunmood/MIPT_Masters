@@ -1,0 +1,14 @@
+python-dotenv
+numpy
+pandas
+polars
+
+apache-airflow
+prefect
+scikit-learn
+tensorflow
+tinygrad
+rich
+click
+parquet
+joblib
